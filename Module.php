@@ -84,6 +84,12 @@ class Module extends \yii\base\Module
 
     public $userNameSupport = 'Support';
 
+    /** @var string|array name of mail template */
+    public $mailTemplateName = ['html' => 'reply-ticket-html'];
+
+    /** @var array params for mail template */
+    public $mailTemplateParams = [];
+
     /**
      * Translate message
      * @param $message
@@ -163,13 +169,13 @@ class Module extends \yii\base\Module
         if ($mailbox == null) {
             return false;
         }
-        $mailsIds = $mailbox->searchMailbox('ALL');
+        $mailsIds = $mailbox->searchMailbox('UNSEEN');
         if (!$mailsIds) {
             return false;
         }
         $name = Yii::$app->name;
         for ($i = 0; $i < count($mailsIds); $i++) {
-            $mail = $mailbox->getMail($mailsIds[$i], false);
+            $mail = $mailbox->getMail($mailsIds[$i]);
             preg_match("/\[$name.*#(.{10,})\]/", $mail->subject, $output_array);
             if (isset($output_array[1]) && ($ticket = Ticket::findOne(['hash_id' => $output_array[1], 'user_contact' => $mail->fromAddress])) !== null) {
                 // reply
@@ -189,9 +195,36 @@ class Module extends \yii\base\Module
                 $ticket->loadFromEmail($mail);
                 $ticket->save();
             }
-            //$mailbox->deleteMail($mailsIds[$i]);
         }
         return true;
+    }
+
+    public function sendMail($contentId) {
+        $content = Content::findOne(['id' => $contentId]);
+        if ($content !== null) {
+            $email = $content->ticket->user_contact;
+            /* send email */
+            $subject = \akiraz2\support\Module::t('support', '[{APP} Ticket #{ID}] Re: {TITLE}',
+                ['APP' => \Yii::$app->name, 'ID' => $content->ticket->hash_id, 'TITLE' => $content->ticket->title]);
+
+            $mailTemplateParams = $this->mailTemplateParams;
+            if (!isset($mailTemplateParams['title'])) {
+                $mailTemplateParams['title'] = $subject;
+            }
+            $mailTemplateParams['model'] = $content;
+
+            $this->mailerContainer->sendMessage(
+                $email,
+                $subject,
+                $this->mailTemplateName,
+                $mailTemplateParams
+            );
+        }
+    }
+
+    protected function getMailerContainer()
+    {
+        return \Yii::$container->get(Mailer::className());
     }
 
     public function getImapMailBox()

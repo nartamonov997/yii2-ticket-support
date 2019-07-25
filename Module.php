@@ -199,7 +199,7 @@ class Module extends \yii\base\Module
         return true;
     }
 
-    public function sendMail($contentId) {
+    public function sendMail($contentId, $sender = NULL) {
         $content = Content::findOne(['id' => $contentId]);
         if ($content !== null) {
             $email = $content->ticket->user_contact;
@@ -217,14 +217,15 @@ class Module extends \yii\base\Module
                 $email,
                 $subject,
                 $this->mailTemplateName,
-                $mailTemplateParams
+                $mailTemplateParams,
+                $sender
             );
         }
     }
 
     protected function getMailerContainer()
     {
-        return \Yii::$container->get(Mailer::className());
+        return \Yii::$container->get(Mailer::class);
     }
 
     public function getImapMailBox()

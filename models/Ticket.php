@@ -345,7 +345,7 @@ class Ticket extends TicketBase
         $this->title = $mail->subject;
         $this->user_name = $mail->fromName;
         $this->user_contact = $mail->fromAddress;
-        $this->content = $mail->textHtml ?? $mail->textPlain;
+        $this->content = $mail->textPlain;
         $this->info = ($mail->headersRaw);
         $this->mail_id = $mail->id;
         $this->fetch_date = $mail->date;

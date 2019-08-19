@@ -10,6 +10,8 @@ namespace akiraz2\support;
 
 use akiraz2\support\models\Content;
 use akiraz2\support\models\Ticket;
+use akiraz2\support\models\Media;
+use http\Message;
 use PhpImap\Mailbox;
 use Yii;
 use yii\queue\Queue;
@@ -187,6 +189,22 @@ class Module extends \yii\base\Module
                 $reply->content = $mail->textHtml ?? $mail->textPlain;
                 $reply->info = $mail->headersRaw;
                 $reply->save();
+
+                foreach ($mail->getAttachments() as $attachment) {
+                    $fileName = uniqid(time(), true);
+                    $filePath = Media::getDirectory().DIRECTORY_SEPARATOR.$fileName;
+                    $attachment->setFilePath($filePath);
+                    $attachment->saveToDisk();
+
+                    $media = new Media();
+                    $media->content_id = $reply->id;
+                    $media->name = $fileName;
+                    $media->size = Media::formatBytes(filesize(Media::getDirectory().DIRECTORY_SEPARATOR.$fileName));
+                    $media->extension = strtoupper(pathinfo($fileName, PATHINFO_EXTENSION));
+                    $meda->created_at = time();
+                    $media->save();
+                }
+
                 $ticket->status = Ticket::STATUS_OPEN;
                 $ticket->save();
             } else {
@@ -237,10 +255,11 @@ class Module extends \yii\base\Module
         $username = $this->imap['username'];
         $password = $this->imap['password'];
         $port = $this->imap['port'] ?? 993;
+        $attachmentsDir = Media::getMailTmpDirectory();
         if (!($host && $username && $password)) {
             return null;
         }
-        $mailbox = new Mailbox("{" . $host . ":" . $port . "/imap/ssl/novalidate-cert}INBOX", $username, $password);
+        $mailbox = new Mailbox("{" . $host . ":" . $port . "/imap/ssl/novalidate-cert}INBOX", $username, $password, $attachmentsDir);
         return $mailbox;
     }
 }

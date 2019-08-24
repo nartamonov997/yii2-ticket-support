@@ -248,7 +248,7 @@ class Ticket extends TicketBase
     {
         if ($insert) {
             $this->hash_id = uniqid();
-            if ($this->type_id == self::TYPE_SITE) {
+            if ($this->type_id == self::TYPE_SITE && !Yii::$app->user->isGuest()) {
                 $this->user_id = Yii::$app->user->id;
                 $this->user_name = Yii::$app->user->identity->{$this->getModule()->userName};
                 $this->user_contact = Yii::$app->user->identity->{$this->getModule()->userEmail};

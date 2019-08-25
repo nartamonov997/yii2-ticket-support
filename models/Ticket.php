@@ -57,7 +57,6 @@ class Ticket extends TicketBase
     public $fetch_date;
     public $attachments;
     public $content_id;
-    public $contentSaved = FALSE;
 
     /**
      * @return array
@@ -250,7 +249,7 @@ class Ticket extends TicketBase
     {
         if ($insert) {
             $this->hash_id = uniqid();
-            if ($this->type_id == self::TYPE_SITE && !Yii::$app->user->isGuest()) {
+            if ($this->type_id == self::TYPE_SITE && !Yii::$app->user->isGuest) {
                 $this->user_id = Yii::$app->user->id;
                 $this->user_name = Yii::$app->user->identity->{$this->getModule()->userName};
                 $this->user_contact = Yii::$app->user->identity->{$this->getModule()->userEmail};
@@ -285,12 +284,11 @@ class Ticket extends TicketBase
             $ticketContent->fetch_date = $this->fetch_date;
             if ($ticketContent->save()) {
                 $this->content_id = $ticketContent->id;
-                $this->contentSaved = TRUE;
             }
 
             if (!empty($this->attachments)) {
                 foreach ($this->attachments as $attachment) {
-                    $fileName = uniqid(time(), true);
+                    $fileName = uniqid(time(), TRUE);
                     $extension = pathinfo($attachment->filePath, PATHINFO_EXTENSION);
                     $fullName = $fileName.'.'.$extension;
                     $path = Media::getDirectory().DIRECTORY_SEPARATOR.$fullName;

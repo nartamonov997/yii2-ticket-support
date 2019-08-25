@@ -21,9 +21,11 @@ class SendMailJob extends BaseObject implements \yii\queue\JobInterface
 
     public $sender;
 
+    public $email;
+
     public function execute($queue)
     {
-        $this->getModule()->sendMail($this->contentId, $this->sender);
+        $this->getModule()->sendMail($this->contentId, $this->sender, $this->email);
     }
 
     protected function getMailer()

@@ -28,6 +28,7 @@ use Yii;
  *
  * @property User $user
  * @property Ticket $ticket
+ * @property Media $media
  */
 class Content extends ContentBase
 {
@@ -110,7 +111,7 @@ class Content extends ContentBase
                 ['id_ticket'],
                 'exist',
                 'skipOnError' => true,
-                'targetClass' => Ticket::className(),
+                'targetClass' => Ticket::class,
                 'targetAttribute' => ['id_ticket' => $this->getModule()->isMongoDb() ? '_id' : 'id']
             ],
         ];
@@ -145,11 +146,23 @@ class Content extends ContentBase
     public function getTicket()
     {
         if (is_a($this, '\yii\mongodb\ActiveRecord')) {
-            return $this->hasOne(Ticket::className(), ['_id' => 'id_ticket']);
+            return $this->hasOne(Ticket::class, ['_id' => 'id_ticket']);
         } else {
-            return $this->hasOne(Ticket::className(), ['id' => 'id_ticket']);
+            return $this->hasOne(Ticket::class, ['id' => 'id_ticket']);
         }
 
+    }
+
+    /**
+     * @return \yii\db\ActiveQueryInterface
+     */
+    public function getMedia()
+    {
+        if (is_a($this, '\yii\mongodb\ActiveRecord')) {
+            return $this->hasMany(Media::class, ['_id' => 'content_id']);
+        } else {
+            return $this->hasMany(Media::class, ['id' => 'content_id']);
+        }
     }
 
     /**
@@ -188,6 +201,6 @@ class Content extends ContentBase
 
     protected function getMailer()
     {
-        return \Yii::$container->get(Mailer::className());
+        return \Yii::$container->get(Mailer::class);
     }
 }

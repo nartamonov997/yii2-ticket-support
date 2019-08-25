@@ -56,7 +56,11 @@ class Ticket extends TicketBase
     public $mail_id;
     public $fetch_date;
     public $attachments;
-    public $content_id;
+
+    /**
+     * @var Content
+     */
+    public $savedContent;
 
     /**
      * @return array
@@ -174,7 +178,7 @@ class Ticket extends TicketBase
                 ['category_id'],
                 'exist',
                 'skipOnError' => true,
-                'targetClass' => Category::className(),
+                'targetClass' => Category::class,
                 'targetAttribute' => ['category_id' => Yii::$app->getModule('support')->isMongoDb() ? '_id' : 'id']
             ],
             [
@@ -214,9 +218,9 @@ class Ticket extends TicketBase
     public function getContents()
     {
         if (is_a($this, '\yii\mongodb\ActiveRecord')) {
-            return $this->hasMany(Content::className(), ['id_ticket' => '_id']);
+            return $this->hasMany(Content::class, ['id_ticket' => '_id']);
         } else {
-            return $this->hasMany(Content::className(), ['id_ticket' => 'id']);
+            return $this->hasMany(Content::class, ['id_ticket' => 'id']);
         }
     }
 
@@ -226,9 +230,9 @@ class Ticket extends TicketBase
     public function getCategory()
     {
         if (is_a($this, '\yii\mongodb\ActiveRecord')) {
-            return $this->hasOne(Category::className(), ['_id' => 'category_id']);
+            return $this->hasOne(Category::class, ['_id' => 'category_id']);
         } else {
-            return $this->hasOne(Category::className(), ['id' => 'category_id']);
+            return $this->hasOne(Category::class, ['id' => 'category_id']);
         }
     }
 
@@ -283,7 +287,7 @@ class Ticket extends TicketBase
             $ticketContent->mail_id = $this->mail_id;
             $ticketContent->fetch_date = $this->fetch_date;
             if ($ticketContent->save()) {
-                $this->content_id = $ticketContent->id;
+                $this->savedContent = $ticketContent;
             }
 
             if (!empty($this->attachments)) {
@@ -357,7 +361,7 @@ class Ticket extends TicketBase
 
     protected function getMailer()
     {
-        return \Yii::$container->get(Mailer::className());
+        return \Yii::$container->get(Mailer::class);
     }
 
     public function loadFromEmail(IncomingMail $mail)

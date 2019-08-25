@@ -29,6 +29,7 @@ use Yii;
  * @property User $user
  * @property Ticket $ticket
  * @property Media $media
+ * @property integer $mediaCount
  */
 class Content extends ContentBase
 {
@@ -162,6 +163,17 @@ class Content extends ContentBase
             return $this->hasMany(Media::class, ['_id' => 'content_id']);
         } else {
             return $this->hasMany(Media::class, ['id' => 'content_id']);
+        }
+    }
+
+    /**
+     * @return integer
+     */
+    public function getMediaCount() {
+        if (is_a($this, '\yii\mongodb\ActiveRecord')) {
+            return $this->hasMany(Media::class, ['_id' => 'content_id'])->count();
+        } else {
+            return $this->hasMany(Media::class, ['id' => 'content_id'])->count();
         }
     }
 

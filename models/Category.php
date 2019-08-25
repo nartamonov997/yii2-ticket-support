@@ -18,6 +18,7 @@ use yii\helpers\ArrayHelper;
  * @property integer|\MongoDB\BSON\ObjectID|string $id
  * @property string $title
  * @property integer $status
+ * @property string $receiver
  * @property integer|\MongoDB\BSON\UTCDateTime $created_at
  * @property integer|\MongoDB\BSON\UTCDateTime $updated_at
  *
@@ -122,7 +123,7 @@ class Category extends CategoryBase
      */
     public function getTickets()
     {
-        return $this->hasMany(Ticket::className(), ['category_id' => 'id']);
+        return $this->hasMany(Ticket::class, ['category_id' => 'id']);
     }
 
     /**

@@ -39,6 +39,11 @@ class Content extends ContentBase
     const STATUS_INACTIVE = 20;
 
     /**
+     * @var bool
+     */
+    public $newTicket = FALSE;
+
+    /**
      * @return array
      */
     public function fields()
@@ -189,7 +194,8 @@ class Content extends ContentBase
             if ($this->getModule()->notifyByEmail) {
                 if ($this->user_id != $this->ticket->user_id) {
                     $id = Yii::$app->get($this->getModule()->queueComponent)->push(new SendMailJob([
-                        'contentId' => $this->id
+                        'contentId' => $this->id,
+                        'sender' => ($this->ticket->category && $this->ticket->category->receiver ? $this->ticket->category->receiver : Yii::$app->params['supportEmail']),
                     ]));
                 }
             }

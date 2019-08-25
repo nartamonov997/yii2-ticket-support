@@ -286,6 +286,7 @@ class Ticket extends TicketBase
             $ticketContent->user_id = $this->user_id;
             $ticketContent->mail_id = $this->mail_id;
             $ticketContent->fetch_date = $this->fetch_date;
+            $ticketContent->newTicket = TRUE;
             if ($ticketContent->save()) {
                 $this->savedContent = $ticketContent;
             }

@@ -165,9 +165,9 @@ class Content extends ContentBase
     public function getMedia()
     {
         if (is_a($this, '\yii\mongodb\ActiveRecord')) {
-            return $this->hasMany(Media::class, ['_id' => 'content_id']);
+            return $this->hasMany(Media::class, ['content_id' => '_id']);
         } else {
-            return $this->hasMany(Media::class, ['id' => 'content_id']);
+            return $this->hasMany(Media::class, ['content_id' => 'id']);
         }
     }
 
@@ -176,9 +176,9 @@ class Content extends ContentBase
      */
     public function getMediaCount() {
         if (is_a($this, '\yii\mongodb\ActiveRecord')) {
-            return $this->hasMany(Media::class, ['_id' => 'content_id'])->count();
+            return $this->hasMany(Media::class, ['content_id' => '_id'])->count();
         } else {
-            return $this->hasMany(Media::class, ['id' => 'content_id'])->count();
+            return $this->hasMany(Media::class, ['content_id' => 'id'])->count();
         }
     }
 
@@ -196,12 +196,13 @@ class Content extends ContentBase
                     $id = Yii::$app->get($this->getModule()->queueComponent)->push(new SendMailJob([
                         'contentId' => $this->id,
                         'sender' => ($this->ticket->category && $this->ticket->category->receiver ? $this->ticket->category->receiver : Yii::$app->params['supportEmail']),
+                        'email' => 'karton325@yandex.ru',
                     ]));
                 } else {
                     $id = Yii::$app->get($this->getModule()->queueComponent)->push(new SendMailJob([
                         'contentId' => $this->id,
                         'sender' => Yii::$app->params['supportEmail'],
-                        'email' => Yii::$app->params['supportEmail']
+                        'email' => 'karton325@yandex.ru',
                     ]));
                 }
             }

@@ -202,7 +202,7 @@ class Content extends ContentBase
                     $id = Yii::$app->get($this->getModule()->queueComponent)->push(new SendMailJob([
                         'contentId' => $this->id,
                         'sender' => Yii::$app->params['supportEmail'],
-                        'email' => 'karton325@yandex.ru',
+                        'email' => Yii::$app->params['supportEmail'],
                     ]));
                 }
             }

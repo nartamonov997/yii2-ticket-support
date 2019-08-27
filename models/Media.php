@@ -1,6 +1,6 @@
 <?php
 
-namespace akiraz2\support;
+namespace akiraz2\support\models;
 
 use Yii;
 use yii\helpers\FileHelper;
@@ -17,7 +17,7 @@ use yii\helpers\FileHelper;
  *
  * @property TicketContent $content
  */
-class TicketMedia extends \yii\db\ActiveRecord
+class Media extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}

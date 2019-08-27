@@ -217,10 +217,12 @@ class Module extends \yii\base\Module
         return true;
     }
 
-    public function sendMail($contentId, $sender = NULL) {
+    public function sendMail($contentId, $sender = NULL, $email = NULL) {
         $content = Content::findOne(['id' => $contentId]);
         if ($content !== null) {
-            $email = $content->ticket->user_contact;
+            if (!$email) {
+                $email = $content->ticket->user_contact;
+            }
             /* send email */
             $subject = \akiraz2\support\Module::t('support', '[{APP} Ticket #{ID}] Re: {TITLE}',
                 ['APP' => \Yii::$app->name, 'ID' => $content->ticket->hash_id, 'TITLE' => $content->ticket->title]);

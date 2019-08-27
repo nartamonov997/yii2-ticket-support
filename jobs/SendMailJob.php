@@ -19,23 +19,13 @@ class SendMailJob extends BaseObject implements \yii\queue\JobInterface
 
     public $contentId;
 
+    public $sender;
+
+    public $email;
+
     public function execute($queue)
     {
-        $content = Content::findOne(['id' => $this->contentId]);
-        if ($content !== null) {
-            $email = $content->ticket->user_contact;
-            /* send email */
-            $subject = \akiraz2\support\Module::t('support', '[{APP} Ticket #{ID}] Re: {TITLE}',
-                ['APP' => \Yii::$app->name, 'ID' => $content->ticket->hash_id, 'TITLE' => $content->ticket->title]);
-
-            $this->mailer->sendMessage(
-                $email,
-                $subject,
-                'reply-ticket',
-                ['title' => $subject, 'model' => $content]
-            );
-
-        }
+        $this->getModule()->sendMail($this->contentId, $this->sender, $this->email);
     }
 
     protected function getMailer()

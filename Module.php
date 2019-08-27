@@ -10,6 +10,8 @@ namespace akiraz2\support;
 
 use akiraz2\support\models\Content;
 use akiraz2\support\models\Ticket;
+use akiraz2\support\models\Media;
+use http\Message;
 use PhpImap\Mailbox;
 use Yii;
 use yii\queue\Queue;
@@ -83,6 +85,12 @@ class Module extends \yii\base\Module
     public $showUsernameSupport = true;
 
     public $userNameSupport = 'Support';
+
+    /** @var string|array name of mail template */
+    public $mailTemplateName = ['html' => 'reply-ticket-html'];
+
+    /** @var array params for mail template */
+    public $mailTemplateParams = [];
 
     /**
      * Translate message
@@ -163,13 +171,13 @@ class Module extends \yii\base\Module
         if ($mailbox == null) {
             return false;
         }
-        $mailsIds = $mailbox->searchMailbox('ALL');
+        $mailsIds = $mailbox->searchMailbox('UNSEEN');
         if (!$mailsIds) {
             return false;
         }
         $name = Yii::$app->name;
         for ($i = 0; $i < count($mailsIds); $i++) {
-            $mail = $mailbox->getMail($mailsIds[$i], false);
+            $mail = $mailbox->getMail($mailsIds[$i]);
             preg_match("/\[$name.*#(.{10,})\]/", $mail->subject, $output_array);
             if (isset($output_array[1]) && ($ticket = Ticket::findOne(['hash_id' => $output_array[1], 'user_contact' => $mail->fromAddress])) !== null) {
                 // reply
@@ -178,9 +186,25 @@ class Module extends \yii\base\Module
                 $reply->mail_id = $mail->id;
                 $reply->fetch_date = $mail->date;
                 $reply->user_id = $ticket->user_id;
-                $reply->content = strip_tags($mail->textHtml ?? $mail->textPlain);
+                $reply->content = $mail->textHtml ?? $mail->textPlain;
                 $reply->info = $mail->headersRaw;
                 $reply->save();
+
+                foreach ($mail->getAttachments() as $attachment) {
+                    $fileName = uniqid(time(), true);
+                    $filePath = Media::getDirectory().DIRECTORY_SEPARATOR.$fileName;
+                    $attachment->setFilePath($filePath);
+                    $attachment->saveToDisk();
+
+                    $media = new Media();
+                    $media->content_id = $reply->id;
+                    $media->name = $fileName;
+                    $media->size = Media::formatBytes(filesize(Media::getDirectory().DIRECTORY_SEPARATOR.$fileName));
+                    $media->extension = strtoupper(pathinfo($fileName, PATHINFO_EXTENSION));
+                    $meda->created_at = time();
+                    $media->save();
+                }
+
                 $ticket->status = Ticket::STATUS_OPEN;
                 $ticket->save();
             } else {
@@ -189,9 +213,39 @@ class Module extends \yii\base\Module
                 $ticket->loadFromEmail($mail);
                 $ticket->save();
             }
-            //$mailbox->deleteMail($mailsIds[$i]);
         }
         return true;
+    }
+
+    public function sendMail($contentId, $sender = NULL, $email = NULL) {
+        $content = Content::findOne(['id' => $contentId]);
+        if ($content !== null) {
+            if (!$email) {
+                $email = $content->ticket->user_contact;
+            }
+            /* send email */
+            $subject = \akiraz2\support\Module::t('support', '[{APP} Ticket #{ID}] Re: {TITLE}',
+                ['APP' => \Yii::$app->name, 'ID' => $content->ticket->hash_id, 'TITLE' => $content->ticket->title]);
+
+            $mailTemplateParams = $this->mailTemplateParams;
+            if (!isset($mailTemplateParams['title'])) {
+                $mailTemplateParams['title'] = $subject;
+            }
+            $mailTemplateParams['model'] = $content;
+
+            $this->mailerContainer->sendMessage(
+                $email,
+                $subject,
+                $this->mailTemplateName,
+                $mailTemplateParams,
+                $sender
+            );
+        }
+    }
+
+    protected function getMailerContainer()
+    {
+        return \Yii::$container->get(Mailer::class);
     }
 
     public function getImapMailBox()
@@ -203,10 +257,11 @@ class Module extends \yii\base\Module
         $username = $this->imap['username'];
         $password = $this->imap['password'];
         $port = $this->imap['port'] ?? 993;
+        $attachmentsDir = Media::getMailTmpDirectory();
         if (!($host && $username && $password)) {
             return null;
         }
-        $mailbox = new Mailbox("{" . $host . ":" . $port . "/imap/ssl/novalidate-cert}INBOX", $username, $password);
+        $mailbox = new Mailbox("{" . $host . ":" . $port . "/imap/ssl/novalidate-cert}INBOX", $username, $password, $attachmentsDir);
         return $mailbox;
     }
 }

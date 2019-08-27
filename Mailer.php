@@ -59,17 +59,19 @@ class Mailer extends Component
      *
      * @return bool
      */
-    public function sendMessage($to, $subject, $view, $params = [])
+    public function sendMessage($to, $subject, $view, $params = [], $sender = NULL)
     {
         $mailer = $this->_mailer;
         $mailer->viewPath = $this->viewPath;
         $mailer->getView()->theme = Yii::$app->view->theme;
 
-        if ($this->sender === null) {
-            $this->sender = isset(Yii::$app->params['adminEmail']) ? Yii::$app->params['adminEmail'] : 'no-reply@example.com';
+        if ($sender === null) {
+            $this->sender = isset(Yii::$app->params['supportEmail']) ? Yii::$app->params['supportEmail'] : 'no-reply@example.com';
+        } else {
+            $this->sender = $sender;
         }
-        return $mailer->compose(['text' => $view . '-text'],
-            $params)
+
+        return $mailer->compose($view, $params)
             ->setTo($to)
             ->setFrom($this->sender)
             ->setSubject($subject)

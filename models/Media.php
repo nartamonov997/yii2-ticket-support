@@ -121,10 +121,11 @@ class Media extends \yii\db\ActiveRecord
     }
 
     /**
-     * @param $filePath
+     * @param string $fileName
      * @return bool
      */
-    public static function forceDownload($filePath) {
+    public static function forceDownload($fileName) {
+        $filePath = self::getDirectory().DIRECTORY_SEPARATOR.$fileName;
         if (file_exists($filePath)) {
             // сбрасываем буфер вывода PHP, чтобы избежать переполнения памяти выделенной под скрипт
             // если этого не сделать файл будет читаться в память полностью!

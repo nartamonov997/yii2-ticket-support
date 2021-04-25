@@ -10,7 +10,7 @@ namespace akiraz2\support\models;
 
 use akiraz2\support\Mailer;
 use akiraz2\support\traits\ModuleTrait;
-use akiraz2\support\Media;
+use akiraz2\support\models\Media;
 use Hashids\Hashids;
 use PhpImap\IncomingMail;
 use Yii;
